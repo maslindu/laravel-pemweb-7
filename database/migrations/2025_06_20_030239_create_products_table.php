@@ -15,12 +15,22 @@ return new class extends Migration
             $table->decimal('price', 10, 2);
             $table->integer('stock');
             $table->string('category');
+            $table->softDeletes();
+            $table->foreignId('category_id')->nullable()->after('stock')->constrained()->onDelete('set null');
+            if (Schema::hasColumn('products', 'category')) {
+                $table->dropColumn('category');
+            }
             $table->timestamps();
         });
     }
 
-    public function down()
+    public function down(): void
     {
-        Schema::dropIfExists('products');
+        Schema::table('products', function (Blueprint $table) {
+            $table->dropSoftDeletes();
+            $table->dropForeign(['category_id']);
+            $table->dropColumn('category_id');
+            $table->string('category')->nullable();
+        });
     }
 };
